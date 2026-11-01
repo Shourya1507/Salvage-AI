@@ -139,7 +139,6 @@ This matters for judging, so we are explicit:
 ```
 salvage-ai/
 ├── README.md
-├── memories.md
 ├── backend/
 │   ├── app/
 │   │   ├── main.py

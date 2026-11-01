@@ -68,7 +68,7 @@ def execute_proposal(db: Session, proposal_id: str) -> ActionLog:
     if not settings.executor_enabled:
         raise ExecutorError("Executor is disabled (EXECUTOR_ENABLED=false)")
 
-    proposal = db.query(Proposal).get(proposal_id)
+    proposal = db.get(Proposal, proposal_id)
     if proposal is None:
         raise ExecutorError(f"Proposal {proposal_id} not found")
 

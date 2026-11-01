@@ -60,6 +60,26 @@ def get_dashboard(db: Session = Depends(get_db)) -> dict:
     )
     type_counts = {row[0]: row[1] for row in type_counts_rows}
 
+    # Top 5 priority cases for the "Needs your attention" widget
+    priority_rows = (
+        db.query(Case)
+        .filter(Case.status.in_(["open", "proposed"]))
+        .order_by(Case.severity.desc(), Case.mrr_at_risk.desc())
+        .limit(5)
+        .all()
+    )
+    priority_cases = [
+        {
+            "id": c.id,
+            "type": c.type,
+            "severity": c.severity,
+            "mrr_at_risk": float(c.mrr_at_risk),
+            "status": c.status,
+            "opened_at": c.opened_at.isoformat(),
+        }
+        for c in priority_rows
+    ]
+
     return {
         "total_mrr_at_risk": round(total_mrr_at_risk, 2),
         "total_recovered_mrr": round(total_recovered, 2),
@@ -67,5 +87,6 @@ def get_dashboard(db: Session = Depends(get_db)) -> dict:
         "open_cases": total_open,
         "case_counts_by_status": status_counts,
         "case_counts_by_type": type_counts,
+        "priority_cases": priority_cases,
     }
 

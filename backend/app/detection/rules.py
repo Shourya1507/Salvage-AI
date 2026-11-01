@@ -122,7 +122,7 @@ def detect_r1_failed_payment(db: Session) -> list[Case]:
             continue
         seen_sub_ids.add(payment.subscription_id)
 
-        sub = db.query(Subscription).get(payment.subscription_id)
+        sub = db.get(Subscription, payment.subscription_id)
         if not sub:
             continue
 
@@ -211,7 +211,7 @@ def detect_r3_duplicate_charge(db: Session) -> list[Case]:
 
     groups: dict[tuple[str, Decimal], list[Payment]] = defaultdict(list)
     for p in recent_payments:
-        sub = db.query(Subscription).get(p.subscription_id)
+        sub = db.get(Subscription, p.subscription_id)
         if not sub:
             continue
         key = (sub.subscriber_id, p.amount)
@@ -233,7 +233,7 @@ def detect_r3_duplicate_charge(db: Session) -> list[Case]:
             continue
         seen_subs.add(first.subscription_id)
 
-        sub = db.query(Subscription).get(first.subscription_id)
+        sub = db.get(Subscription, first.subscription_id)
         if not sub:
             continue
 
@@ -351,7 +351,7 @@ def detect_r5_at_risk(db: Session) -> list[Case]:
 
     cases: list[Case] = []
     for score_row in at_risk:
-        sub = db.query(Subscription).get(score_row.subscription_id)
+        sub = db.get(Subscription, score_row.subscription_id)
         if not sub or sub.status not in ("ACTIVE",):
             continue
 

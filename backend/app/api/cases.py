@@ -8,7 +8,6 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.agent.runner import run_agent
 from app.config import settings
 from app.db.models import Case, Proposal
 from app.db.session import get_db
@@ -72,7 +71,7 @@ def list_cases(
 @router.get("/{case_id}")
 def get_case(case_id: str, db: Session = Depends(get_db)) -> dict:
     """Return a single case with full detail."""
-    case = db.query(Case).get(case_id)
+    case = db.get(Case, case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
     return _case_to_dict(case)
@@ -84,7 +83,9 @@ def run_agent_for_case(
     db: Session = Depends(get_db),
 ) -> dict:
     """(Re)generate a proposal for a case by running the LLM agent."""
-    case = db.query(Case).get(case_id)
+    from app.agent.runner import run_agent  # lazy import to avoid slow anthropic import at module load
+
+    case = db.get(Case, case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
 

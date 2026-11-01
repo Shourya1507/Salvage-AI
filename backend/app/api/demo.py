@@ -189,7 +189,7 @@ def inject_event(
     """Inject a simulated PayPal webhook event."""
 
     if body.subscription_id:
-        sub = db.query(Subscription).get(body.subscription_id)
+        sub = db.get(Subscription, body.subscription_id)
     else:
         sub = (
             db.query(Subscription)

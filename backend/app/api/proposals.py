@@ -36,6 +36,29 @@ class DismissRequest(BaseModel):
     decided_by: Optional[str] = None
 
 
+@router.get("/{proposal_id}")
+def get_proposal(proposal_id: str, db: Session = Depends(get_db)) -> dict:
+    """Return a single proposal by ID."""
+    proposal = db.get(Proposal, proposal_id)
+    if not proposal:
+        raise HTTPException(status_code=404, detail=f"Proposal {proposal_id} not found")
+    return {
+        "id": proposal.id,
+        "case_id": proposal.case_id,
+        "action_type": proposal.action_type,
+        "diagnosis": proposal.diagnosis,
+        "reasoning": proposal.reasoning,
+        "customer_message": proposal.customer_message,
+        "confidence": float(proposal.confidence),
+        "params": json.loads(proposal.params_json or "{}"),
+        "status": proposal.status,
+        "created_at": proposal.created_at.isoformat(),
+        "decided_at": proposal.decided_at.isoformat() if proposal.decided_at else None,
+        "decided_by": proposal.decided_by,
+        "model": proposal.model,
+    }
+
+
 @router.post("/{proposal_id}/approve")
 def approve_proposal(
     proposal_id: str,
@@ -44,7 +67,7 @@ def approve_proposal(
     admin_token: str = Depends(_require_admin),
 ) -> dict:
     """Approve a proposal and immediately execute it."""
-    proposal = db.query(Proposal).get(proposal_id)
+    proposal = db.get(Proposal, proposal_id)
     if not proposal:
         raise HTTPException(status_code=404, detail=f"Proposal {proposal_id} not found")
 
@@ -92,7 +115,7 @@ def dismiss_proposal(
     admin_token: str = Depends(_require_admin),
 ) -> dict:
     """Dismiss a pending proposal."""
-    proposal = db.query(Proposal).get(proposal_id)
+    proposal = db.get(Proposal, proposal_id)
     if not proposal:
         raise HTTPException(status_code=404, detail=f"Proposal {proposal_id} not found")
 
