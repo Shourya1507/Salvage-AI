@@ -91,28 +91,40 @@
    - Diagnosed root cause for `TestClient` hang on Windows sandbox: Windows AppContainer sandboxes block local loopback (`127.0.0.1`) socket pairs which `asyncio.ProactorEventLoop` self-pipes require (`socket.accept()`). Running integration tests with `BypassSandbox: true` completes instantaneously (3.9s).
    - **Full test suite status:** 59 passed, 0 failures, 100% green.
 
+7. **Frontend Application Development (`/frontend`):**
+   - Configured Node.js and npm runtime environment.
+   - Scaffolded React 19 + TypeScript + Vite project configured with Tailwind CSS v4 design tokens from `DESIGN (3).md`.
+   - Built comprehensive API client (`src/api/client.ts`) connecting all backend endpoints.
+   - Implemented `Navbar` with active tabs, open-case badge count, and environment status indicator.
+   - Implemented `DashboardView` with real-time revenue at risk, recovered revenue, horizontal "At risk by cause" bars, "Needs your attention" top priority queue, and data mix footer.
+   - Implemented `CasesView` with multi-criteria filtering (status, leak cause type, keywords), sortable queue, and status badges.
+   - Implemented `CaseDetailModal` featuring the side-by-side design: facts and raw evidence on the left, AI diagnosis, reasoning, drafted customer message, and plain-English Human-In-The-Loop approval dialog on the right.
+   - Implemented `ActionLogView` providing an immutable audit trail of executed actions, recovered MRR, and PayPal response statuses.
+   - Implemented `SettingsDemoView` with full Hackathon demo controls: seed sample subscribers, inject failure events (failed payment, stalled suspension, duplicate charge), sync subscriptions, and system health monitors.
+   - Production build verified: `npm run build` generates clean dist bundle in 32s with 0 errors.
+
 ---
 
 ## 5. Next Steps & Remaining Tasks
 - [x] **Backend Cleanup & Tests Verification:** 59/59 tests passing across `test_agent.py`, `test_detection.py`, `test_executor.py`, and `test_webhooks.py`.
-- [ ] **Frontend Development (`/frontend`):**
-  - Scaffold React + Vite + Tailwind CSS project according to `DESIGN (3).md`.
-  - Implement Dashboard (`/`):
+- [x] **Frontend Development (`/frontend`):**
+  - [x] Scaffold React + Vite + Tailwind CSS project according to `DESIGN (3).md`.
+  - [x] Implement Dashboard (`/`):
     - Top stats: Monthly revenue at risk, Recovered revenue.
     - "At risk by cause" horizontal breakdown chart.
     - "Needs your attention" top priority queue.
     - Real vs. Simulated data badge.
-  - Implement Case Queue (`/cases`):
+  - [x] Implement Case Queue (`/cases`):
     - Filterable by type (Failed payment, Stalled, Duplicate, Price fallout, At-risk).
     - Sortable by severity and revenue.
-  - Implement Case Detail Modal/Page:
+  - [x] Implement Case Detail Modal/Page:
     - AI Diagnosis & Reasoning display.
     - Evidence and timeline drawer.
     - Drafted customer message (one-click copy).
     - Approve / Edit / Dismiss workflow.
-  - Implement Action Log (`/actions`):
+  - [x] Implement Action Log (`/actions`):
     - Audit log of executed proposals, PayPal API responses, recovered MRR.
-  - Implement Demo Controls (`/settings` or overlay in Demo mode):
+  - [x] Implement Demo Controls (`/settings` or overlay in Demo mode):
     - Seed sample merchant data.
     - Inject specific failure events on demand.
 - [ ] **End-to-End Verification:**
