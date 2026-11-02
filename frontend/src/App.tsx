@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { CasesView } from './components/CasesView';
@@ -31,6 +32,14 @@ export const App: React.FC = () => {
   const [selectedCaseDetail, setSelectedCaseDetail] = useState<CaseItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast((prev) => (prev?.message === message ? null : prev));
+    }, 4500);
+  };
 
   // Load all data
   const loadData = async (isManualRefresh: boolean = false) => {
@@ -142,8 +151,33 @@ export const App: React.FC = () => {
           }}
           onRefreshCase={handleRefreshCase}
           onCaseUpdated={() => loadData(false)}
+          onShowToast={showToast}
         />
       )}
+
+      {/* Toast Notification with aria-live */}
+      <div
+        aria-live="polite"
+        className="fixed bottom-5 right-5 z-70 flex flex-col gap-2 pointer-events-none"
+      >
+        {toast && (
+          <div
+            role="status"
+            className={`pointer-events-auto px-4 py-3 rounded-xl shadow-xl border text-xs font-medium flex items-center gap-2.5 transition-all ${
+              toast.type === 'success'
+                ? 'bg-emerald-950 text-emerald-100 border-emerald-800'
+                : toast.type === 'error'
+                ? 'bg-red-950 text-red-100 border-red-800'
+                : 'bg-gray-900 text-gray-100 border-gray-700'
+            }`}
+          >
+            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />}
+            {toast.type === 'info' && <Info className="w-4 h-4 text-blue-400 shrink-0" />}
+            <span>{toast.message}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

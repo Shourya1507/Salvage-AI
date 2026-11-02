@@ -122,6 +122,24 @@
       8. Dashboard `total_recovered_mrr` increments and audit log records execution.
     - **Total Test Suite Status:** 60 passed, 0 failures, 100% green.
 
+11. **Backend API Case Detail Enrichment (`backend/app/api/cases.py`):**
+    - Updated `_case_to_dict` to include nested `subscription`, `subscriber`, and `plan` details alongside full proposal attributes (`reasoning`, `customer_message`, `params`, `model`, `decided_at`, `decided_by`), eliminating "Unknown Subscriber" displays in the UI.
+    - Extended `tests/test_e2e_flow.py` with explicit assertions validating subscriber, plan, subscription, and proposal payloads. All 60 tests passing green.
+
+12. **Frontend Accessibility & UI/UX Polish (per `DESIGN (3).md`):**
+    - Removed Vite boilerplate assets (`App.css`, `hero.png`, `react.svg`, `vite.svg`).
+    - Added dark-theme CSS token values in `index.css` under `@media (prefers-color-scheme: dark)`.
+    - Added keyboard navigation: `Escape` key closes dialogs and modals per WCAG AA / Section 9.
+    - Added friendly empty queue state: "No leaks found. Nice." per Section 7.
+    - Added visible `"Suggested by Salvage AI"` label and confidence rating on all AI recommendations per Section 8.
+    - Added distinct button styles: "Mark as Handled" for advisory actions, danger styling for destructive actions (cancel/suspend confirmation), and "Approve & Execute" for PayPal API calls per Section 5.3.
+    - Updated loading indicator to "Analyzing this case…" per Section 7.
+    - Implemented accessible floating toast notification system with `role="status"` and `aria-live="polite"` for instant merchant action feedback.
+    - Verified production build: `npm run build` generates 0 errors.
+
+13. **Environment & Demo Setup (`backend/.env`):**
+    - Created local `.env` with `DEMO_MODE=true`, `WEBHOOK_VERIFY=false`, `ADMIN_TOKEN=admin_secret_token_123` matching the frontend API client. Tested full live seeding and case listing.
+
 ---
 
 ## 5. Implementation Status & Checklist

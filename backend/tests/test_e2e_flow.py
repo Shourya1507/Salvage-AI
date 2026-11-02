@@ -86,10 +86,17 @@ def test_full_salvage_lifecycle():
                 exec_res = res.json()
                 assert exec_res["success"] is True
 
-            # 6. Verify case is resolved
+            # 6. Verify case is resolved and includes subscriber/plan/subscription details
             res = client.get(f"/api/cases/{target_case['id']}")
             case_detail = res.json()
             assert case_detail["status"] == "resolved"
+            assert case_detail["subscriber"] is not None
+            assert "email" in case_detail["subscriber"]
+            assert case_detail["plan"] is not None
+            assert "price" in case_detail["plan"]
+            assert case_detail["subscription"] is not None
+            assert len(case_detail["proposals"]) > 0
+            assert case_detail["proposals"][0]["action_type"] == "RETRY_PAYMENT"
 
             # 7. Verify dashboard statistics updated
             res = client.get("/api/dashboard")

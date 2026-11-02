@@ -21,14 +21,51 @@ def _case_to_dict(case: Case) -> dict:
     proposals = [
         {
             "id": p.id,
+            "case_id": p.case_id,
             "action_type": p.action_type,
             "diagnosis": p.diagnosis,
+            "reasoning": p.reasoning,
+            "customer_message": p.customer_message,
+            "params": json.loads(p.params_json or "{}"),
             "confidence": float(p.confidence),
+            "model": p.model,
             "status": p.status,
-            "created_at": p.created_at.isoformat(),
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+            "decided_at": p.decided_at.isoformat() if p.decided_at else None,
+            "decided_by": p.decided_by,
         }
-        for p in case.proposals
+        for p in (case.proposals or [])
     ]
+
+    sub_dict = None
+    subscriber_dict = None
+    plan_dict = None
+
+    sub = case.subscription
+    if sub:
+        sub_dict = {
+            "id": sub.id,
+            "paypal_subscription_id": sub.paypal_subscription_id,
+            "status": sub.status,
+            "source": sub.source,
+            "start_time": sub.start_time.isoformat() if sub.start_time else None,
+        }
+        if sub.subscriber:
+            subscriber_dict = {
+                "id": sub.subscriber.id,
+                "name": sub.subscriber.name,
+                "email": sub.subscriber.email,
+                "source": sub.subscriber.source,
+            }
+        if sub.plan:
+            plan_dict = {
+                "id": sub.plan.id,
+                "name": sub.plan.name,
+                "price": float(sub.plan.price),
+                "currency": sub.plan.currency,
+                "interval": sub.plan.interval,
+            }
+
     return {
         "id": case.id,
         "subscription_id": case.subscription_id,
@@ -37,9 +74,12 @@ def _case_to_dict(case: Case) -> dict:
         "severity": case.severity,
         "mrr_at_risk": float(case.mrr_at_risk),
         "evidence": json.loads(case.evidence_json or "{}"),
-        "opened_at": case.opened_at.isoformat(),
-        "updated_at": case.updated_at.isoformat(),
+        "opened_at": case.opened_at.isoformat() if case.opened_at else None,
+        "updated_at": case.updated_at.isoformat() if case.updated_at else None,
         "proposals": proposals,
+        "subscription": sub_dict,
+        "subscriber": subscriber_dict,
+        "plan": plan_dict,
     }
 
 

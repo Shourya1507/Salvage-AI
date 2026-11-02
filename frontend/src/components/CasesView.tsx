@@ -92,8 +92,14 @@ export const CasesView: React.FC<CasesViewProps> = ({ cases, loading, onSelectCa
           <div className="py-16 text-center text-gray-400">Loading cases...</div>
         ) : filteredCases.length === 0 ? (
           <div className="py-16 text-center text-gray-500 space-y-2">
-            <p className="font-semibold text-gray-700">No cases match the selected filters.</p>
-            <p className="text-xs text-gray-400">Try adjusting your filters or search keywords.</p>
+            <p className="font-semibold text-gray-800 text-base">
+              {cases.length === 0 ? 'No leaks found. Nice.' : 'No cases match the selected filters.'}
+            </p>
+            <p className="text-xs text-gray-400 max-w-sm mx-auto">
+              {cases.length === 0
+                ? 'Your PayPal subscription business is running clean. You can inject demo failure events or trigger a sync from Settings.'
+                : 'Try adjusting your filters or search keywords to view other cases.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">

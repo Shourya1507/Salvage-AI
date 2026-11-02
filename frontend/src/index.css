@@ -13,6 +13,21 @@
   --info-sim: #6B5BCD;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --text: #F0F6FC;
+    --text-muted: #8B949E;
+    --border: #30363D;
+    --primary: #388BFD;
+    --success: #238636;
+    --warning: #D29922;
+    --danger: #F85149;
+    --info-sim: #8957E5;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
