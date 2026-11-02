@@ -101,12 +101,36 @@
    - Implemented `CaseDetailModal` featuring the side-by-side design: facts and raw evidence on the left, AI diagnosis, reasoning, drafted customer message, and plain-English Human-In-The-Loop approval dialog on the right.
    - Implemented `ActionLogView` providing an immutable audit trail of executed actions, recovered MRR, and PayPal response statuses.
    - Implemented `SettingsDemoView` with full Hackathon demo controls: seed sample subscribers, inject failure events (failed payment, stalled suspension, duplicate charge), sync subscriptions, and system health monitors.
-   - Production build verified: `npm run build` generates clean dist bundle in 32s with 0 errors.
+   - Production build verified: `npm run build` generates clean dist bundle with 0 errors.
+
+8. **Datetime Subtraction Normalization in Detection Rules (`rules.py`):**
+   - Fixed `TypeError: can't subtract offset-naive and offset-aware datetimes` in SQLite environments by implementing `_ensure_utc()` helper across rules R1 and R2.
+
+9. **API Response Schema Alignments:**
+   - Synchronized frontend API client with backend paginated responses (`data.cases` in `/api/cases` and `data.actions` in `/api/actions`).
+   - Mapped demo injector scenario keys to official PayPal webhook event types (`BILLING.SUBSCRIPTION.PAYMENT.FAILED`, `BILLING.SUBSCRIPTION.SUSPENDED`, etc.).
+
+10. **Full End-to-End Lifecycle Test (`tests/test_e2e_flow.py`):**
+    - Built comprehensive integration test simulating the entire workflow:
+      1. Seed subscribers & active plans.
+      2. Inject simulated payment failure event.
+      3. Verify detection engine triggers and opens `FAILED_PAYMENT` case.
+      4. Run read-only Claude diagnosis agent to propose `RETRY_PAYMENT`.
+      5. Human merchant approves the proposal via `/api/proposals/{id}/approve`.
+      6. Executor invokes PayPal client and captures outstanding balance.
+      7. Case transitions to `resolved`.
+      8. Dashboard `total_recovered_mrr` increments and audit log records execution.
+    - **Total Test Suite Status:** 60 passed, 0 failures, 100% green.
 
 ---
 
-## 5. Next Steps & Remaining Tasks
-- [x] **Backend Cleanup & Tests Verification:** 59/59 tests passing across `test_agent.py`, `test_detection.py`, `test_executor.py`, and `test_webhooks.py`.
+## 5. Implementation Status & Checklist
+- [x] **Backend Architecture & Invariants Verified:**
+  - Read-only agent tools invariant enforced.
+  - Human-in-the-loop approval gate enforced.
+  - Sandbox-only protection active (`ALLOW_LIVE=false`).
+  - Deterministic rules R1–R5 functioning accurately.
+- [x] **Backend Cleanup & Tests Verification:** 60/60 tests passing across all unit and integration test suites.
 - [x] **Frontend Development (`/frontend`):**
   - [x] Scaffold React + Vite + Tailwind CSS project according to `DESIGN (3).md`.
   - [x] Implement Dashboard (`/`):
@@ -127,6 +151,24 @@
   - [x] Implement Demo Controls (`/settings` or overlay in Demo mode):
     - Seed sample merchant data.
     - Inject specific failure events on demand.
-- [ ] **End-to-End Verification:**
-  - Verify complete workflow: Webhook/demo trigger -> Case creation -> Agent diagnosis -> Human approval -> Execution -> Action log -> Dashboard update.
+- [x] **End-to-End Verification:**
+  - [x] Complete lifecycle integration test passing (`test_e2e_flow.py`).
+
+---
+
+## 6. Next Steps (Demo & Submission Preparation)
+1. **Local Server Launch:**
+   - Backend: `uvicorn app.main:app --reload --port 8000` (from `backend/`).
+   - Frontend: `npm run dev` (from `frontend/`, opens on `http://localhost:3000`).
+2. **Demo Storyboard Walkthrough (per `DESIGN (3).md` Section 11):**
+   - Step 1: Open Dashboard — show revenue at risk & cause breakdown.
+   - Step 2: Open Demo Controls — inject a failed payment webhook.
+   - Step 3: Case appears in queue with High Severity badge.
+   - Step 4: Open Case Detail — examine evidence, AI diagnosis, and customer message draft.
+   - Step 5: Click "Approve & Execute" — show human confirmation dialog explaining the exact PayPal call.
+   - Step 6: View Action Log — show HTTP response code and recovered MRR.
+   - Step 7: Return to Dashboard — show recovered revenue increased and open leaks decreased.
+3. **Demo Video Recording & Hackathon Submission:**
+   - 3-minute video adhering to the storyboard in PRD / DESIGN.
+   - Showcase sandbox security and human-in-the-loop safeguards.
 

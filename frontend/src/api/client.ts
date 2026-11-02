@@ -118,7 +118,7 @@ export const getCases = async (params?: {
   limit?: number;
 }): Promise<CaseItem[]> => {
   const res = await api.get('/api/cases', { params });
-  return res.data;
+  return res.data?.cases || [];
 };
 
 export const getCaseDetail = async (caseId: string): Promise<CaseItem> => {
@@ -155,7 +155,7 @@ export const dismissProposal = async (
 
 export const getActionLogs = async (limit: number = 50): Promise<ActionLogItem[]> => {
   const res = await api.get('/api/actions', { params: { limit } });
-  return res.data;
+  return res.data?.actions || [];
 };
 
 export const getHealth = async (): Promise<HealthState> => {
@@ -176,7 +176,14 @@ export const seedDemoData = async (subscribers: number = 25): Promise<any> => {
 export const injectScenario = async (
   scenario: 'failed_payment' | 'duplicate_charge' | 'price_change' | 'stalled_suspension'
 ): Promise<any> => {
-  const res = await api.post('/api/demo/inject', { scenario });
+  const eventMap: Record<string, string> = {
+    failed_payment: 'BILLING.SUBSCRIPTION.PAYMENT.FAILED',
+    stalled_suspension: 'BILLING.SUBSCRIPTION.SUSPENDED',
+    duplicate_charge: 'PAYMENT.SALE.COMPLETED',
+    price_change: 'BILLING.SUBSCRIPTION.UPDATED',
+  };
+  const event_type = eventMap[scenario] || 'BILLING.SUBSCRIPTION.PAYMENT.FAILED';
+  const res = await api.post('/api/demo/inject', { event_type });
   return res.data;
 };
 

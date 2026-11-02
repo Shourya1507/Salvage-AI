@@ -26,6 +26,14 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _ensure_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 def _open_case(
     db: Session,
     subscription_id: str,
@@ -90,7 +98,7 @@ def detect_r1_failed_payment(db: Session) -> list[Case]:
         mrr = _get_mrr(sub)
         days_since = 0.0
         if sub.suspended_at:
-            days_since = ((_utcnow() - sub.suspended_at).total_seconds() / 86400)
+            days_since = ((_utcnow() - _ensure_utc(sub.suspended_at)).total_seconds() / 86400)
         urgency = urgency_from_days(days_since, max_days=14)
         severity = compute_severity(mrr, urgency)
 
@@ -127,7 +135,7 @@ def detect_r1_failed_payment(db: Session) -> list[Case]:
             continue
 
         mrr = _get_mrr(sub)
-        days_since = (_utcnow() - payment.occurred_at).total_seconds() / 86400
+        days_since = (_utcnow() - _ensure_utc(payment.occurred_at)).total_seconds() / 86400
         urgency = urgency_from_days(days_since, max_days=14)
         severity = compute_severity(mrr, urgency)
 
@@ -171,7 +179,7 @@ def detect_r2_stalled_suspension(db: Session) -> list[Case]:
     cases: list[Case] = []
     for sub in stalled:
         mrr = _get_mrr(sub)
-        days_stalled = (_utcnow() - sub.suspended_at).total_seconds() / 86400  # type: ignore[operator]
+        days_stalled = (_utcnow() - _ensure_utc(sub.suspended_at)).total_seconds() / 86400  # type: ignore[operator]
         urgency = urgency_from_days(days_stalled, max_days=60)
         severity = compute_severity(mrr, urgency)
 
