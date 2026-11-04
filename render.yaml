@@ -20,8 +20,11 @@ services:
       - key: ADMIN_TOKEN
         value: "admin_secret_token_123"
       - key: PAYPAL_CLIENT_ID
-        sync: false
+        value: "sandbox_client_id_demo"
       - key: PAYPAL_CLIENT_SECRET
-        sync: false
-      - key: LLM_API_KEY
-        sync: false
+        value: "sandbox_client_secret_demo"
+      - key: GEMINI_API_KEY
+        value: "demo_key"
+      - key: LLM_MODEL
+        value: "gemini-2.5-flash"
+

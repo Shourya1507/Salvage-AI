@@ -220,7 +220,7 @@ export const SettingsDemoView: React.FC<SettingsDemoViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span className="font-semibold text-sm text-gray-800">
-                Claude 3.5 Sonnet (Read-Only)
+                Google Gemini 2.5 Flash (Read-Only)
               </span>
             </div>
           </div>

@@ -124,11 +124,11 @@ def run_agent_for_case(
 ) -> dict:
     """(Re)generate a proposal for a case by running the LLM agent.
 
-    In DEMO_MODE, if the real Anthropic API call fails (e.g. missing or
+    In DEMO_MODE, if the real Gemini API call fails (e.g. missing or
     invalid API key), falls back to a deterministic demo agent that
-    produces realistic case-type-specific recommendations.  The proposal
+    produces realistic case-type-specific recommendations. The proposal
     is labelled with model="demo-fallback" so it is visually
-    distinguishable from real Claude output.
+    distinguishable from real Gemini output.
     """
     case = db.get(Case, case_id)
     if not case:

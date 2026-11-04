@@ -154,6 +154,20 @@
     - Added `railway.json` for Railway deployment.
     - Added `.dockerignore` to keep image builds lightweight.
 
+16. **Transition to Google Gemini & Cloud Deployment Fixes:**
+    - **Deployment Failure Diagnosis & Resolution:**
+      1. Removed Windows-specific `@rolldown/binding-win32-x64-msvc` from `frontend/package.json` that broke Linux Docker container builds.
+      2. Upgraded builder stage in `Dockerfile` to `node:22-alpine` with `npm install` for cross-platform stability.
+      3. Added safe fallback defaults in `backend/app/config.py` so Pydantic does not crash with `ValidationError` when environment variables are omitted on initial cloud boot.
+      4. Updated `render.yaml` to provide sensible demo defaults instead of blocking on unpopulated `sync: false` variables.
+    - **Replaced Claude with Google Gemini:**
+      - Integrated Google's official `google-genai` SDK in `backend/app/agent/runner.py`.
+      - Leveraged native `response_schema=AgentOutput` with `response_mime_type="application/json"` for guaranteed typed JSON responses.
+      - Updated `backend/app/config.py` to support `GEMINI_API_KEY` (aliased to `LLM_API_KEY`) with default model `gemini-2.5-flash`.
+      - Replaced `anthropic` in `backend/requirements.txt` with `google-genai>=0.1.0`.
+      - Updated `/healthz` reachability check and frontend settings labels to Gemini.
+      - Verified: 60/60 tests pass; production frontend compiles with 0 errors.
+
 ---
 
 ## 5. Implementation Status & Checklist

@@ -113,13 +113,11 @@ def health_check() -> dict:
     except Exception as exc:
         logger.warning("PayPal health check failed: %s", exc)
 
-    # LLM check
+    # LLM check (Google Gemini)
     llm_ok = False
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.llm_api_key)
-        # Just instantiating is enough to verify the key is set
-        llm_ok = bool(settings.llm_api_key)
+        from app.agent.runner import _check_llm_reachability
+        llm_ok = _check_llm_reachability()
     except Exception as exc:
         logger.warning("LLM health check failed: %s", exc)
 
@@ -164,7 +162,9 @@ from fastapi.responses import FileResponse
 
 _candidate_dist_dirs = [
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")),
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend_dist")),
+    "/app/backend/frontend/dist",
     "/app/frontend/dist",
 ]
 

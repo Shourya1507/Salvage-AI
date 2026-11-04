@@ -4,7 +4,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,8 +17,12 @@ class Settings(BaseSettings):
     )
 
     # PayPal
-    paypal_client_id: str = Field(..., description="PayPal OAuth client ID")
-    paypal_client_secret: str = Field(..., description="PayPal OAuth client secret")
+    paypal_client_id: str = Field(
+        default="sandbox_client_id_demo", description="PayPal OAuth client ID"
+    )
+    paypal_client_secret: str = Field(
+        default="sandbox_client_secret_demo", description="PayPal OAuth client secret"
+    )
     paypal_env: Literal["sandbox", "live"] = "sandbox"
     paypal_webhook_id: str = Field(default="", description="PayPal webhook ID for verification")
 
@@ -31,9 +35,13 @@ class Settings(BaseSettings):
     # Webhook
     webhook_verify: bool = True
 
-    # LLM
-    llm_api_key: str = Field(..., description="Anthropic API key")
-    llm_model: str = "claude-3-5-sonnet-20241022"
+    # LLM (Google Gemini)
+    llm_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("GEMINI_API_KEY", "LLM_API_KEY"),
+        description="Google Gemini API key",
+    )
+    llm_model: str = "gemini-2.5-flash"
 
     # Database
     database_url: str = "sqlite:///./salvage.db"
@@ -44,7 +52,9 @@ class Settings(BaseSettings):
     allow_live: bool = False
 
     # Security
-    admin_token: str = Field(..., description="Bearer token for admin routes")
+    admin_token: str = Field(
+        default="admin_secret_token_123", description="Bearer token for admin routes"
+    )
 
     # Detection thresholds
     stalled_days: int = 7
