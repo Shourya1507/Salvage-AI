@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: salvage-ai
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: EXECUTOR_ENABLED
+        value: "true"
+      - key: ALLOW_LIVE
+        value: "false"
+      - key: PAYPAL_ENV
+        value: "sandbox"
+      - key: WEBHOOK_VERIFY
+        value: "false"
+      - key: ADMIN_TOKEN
+        value: "admin_secret_token_123"
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: LLM_API_KEY
+        sync: false

@@ -147,6 +147,13 @@
     - Enhanced `CaseDetailModal.tsx` in frontend to display the model tag alongside confidence score, maintaining data honesty.
     - Verified: 60/60 backend tests pass; frontend production build passes with 0 errors.
 
+15. **Production Deployment Packaging:**
+    - Enabled unified single-service hosting in `backend/app/main.py`: FastAPI serves the compiled React SPA from `frontend/dist` on any non-API route, eliminating CORS and multi-domain configuration.
+    - Created multi-stage `Dockerfile` (Node 20 builder + Python 3.11 runtime) for zero-dependency containerized deployments.
+    - Added `render.yaml` blueprint for 1-click free deployments on Render directly linked to `https://github.com/Shourya1507/Salvage-AI`.
+    - Added `railway.json` for Railway deployment.
+    - Added `.dockerignore` to keep image builds lightweight.
+
 ---
 
 ## 5. Implementation Status & Checklist

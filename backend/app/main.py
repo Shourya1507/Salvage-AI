@@ -155,3 +155,33 @@ app.include_router(proposals_router)
 app.include_router(actions_router)
 app.include_router(demo_router)
 
+# ---------------------------------------------------------------------------
+# Static frontend SPA serving (for unified single-container deployment)
+# ---------------------------------------------------------------------------
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+_candidate_dist_dirs = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend_dist")),
+    "/app/frontend/dist",
+]
+
+_frontend_dist = next((d for d in _candidate_dist_dirs if os.path.isdir(d)), None)
+
+if _frontend_dist:
+    assets_dir = os.path.join(_frontend_dist, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend_assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Allow API, docs, and health routes to pass through to FastAPI handlers
+        if full_path.startswith(("api", "webhooks", "healthz", "docs", "openapi.json")):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        target_file = os.path.join(_frontend_dist, full_path)
+        if full_path and os.path.isfile(target_file):
+            return FileResponse(target_file)
+        return FileResponse(os.path.join(_frontend_dist, "index.html"))
+
