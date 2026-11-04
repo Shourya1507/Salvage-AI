@@ -140,6 +140,13 @@
 13. **Environment & Demo Setup (`backend/.env`):**
     - Created local `.env` with `DEMO_MODE=true`, `WEBHOOK_VERIFY=false`, `ADMIN_TOKEN=admin_secret_token_123` matching the frontend API client. Tested full live seeding and case listing.
 
+14. **AI Generation Fix & Contextual Demo Fallback (`app/agent/demo_fallback.py`):**
+    - Diagnosed AI generation failure: Placeholder `LLM_API_KEY` caused a 401 Authentication Error when invoking the Anthropic API.
+    - Implemented `app/agent/demo_fallback.py`: Generates rich, contextual AI diagnoses, multi-point reasoning citing case evidence, action parameters, customer outreach drafts, and realistic confidence scores across all 5 leak categories (`FAILED_PAYMENT`, `STALLED_SUSPENSION`, `DUPLICATE_CHARGE`, `PRICE_FALLOUT`, `AT_RISK`).
+    - Updated `POST /api/cases/{case_id}/run-agent` in `app/api/cases.py`: Attempts the live Anthropic Claude agent first; in `DEMO_MODE`, seamlessly falls back to the demo fallback agent if the external API call fails, explicitly stamping the proposal with `model="demo-fallback"`.
+    - Enhanced `CaseDetailModal.tsx` in frontend to display the model tag alongside confidence score, maintaining data honesty.
+    - Verified: 60/60 backend tests pass; frontend production build passes with 0 errors.
+
 ---
 
 ## 5. Implementation Status & Checklist

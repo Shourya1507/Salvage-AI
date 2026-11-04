@@ -122,9 +122,14 @@ def run_agent_for_case(
     case_id: str,
     db: Session = Depends(get_db),
 ) -> dict:
-    """(Re)generate a proposal for a case by running the LLM agent."""
-    from app.agent.runner import run_agent  # lazy import to avoid slow anthropic import at module load
+    """(Re)generate a proposal for a case by running the LLM agent.
 
+    In DEMO_MODE, if the real Anthropic API call fails (e.g. missing or
+    invalid API key), falls back to a deterministic demo agent that
+    produces realistic case-type-specific recommendations.  The proposal
+    is labelled with model="demo-fallback" so it is visually
+    distinguishable from real Claude output.
+    """
     case = db.get(Case, case_id)
     if not case:
         raise HTTPException(status_code=404, detail=f"Case {case_id} not found")
@@ -135,11 +140,25 @@ def run_agent_for_case(
             detail=f"Cannot run agent on case with status '{case.status}'",
         )
 
+    model_used = settings.llm_model
+    agent_output = None
+
+    # Try real LLM agent first
     try:
+        from app.agent.runner import run_agent  # lazy import
+
         agent_output = run_agent(db, case)
     except Exception as exc:
-        logger.error("Agent failed for case %s: %s", case_id, exc)
-        raise HTTPException(status_code=500, detail=f"Agent error: {exc}") from exc
+        logger.warning("Real agent failed for case %s: %s", case_id, exc)
+        if settings.demo_mode:
+            # Fall back to demo agent
+            logger.info("DEMO_MODE active — using demo fallback agent for case %s", case_id)
+            from app.agent.demo_fallback import _demo_response_for_case
+
+            agent_output = _demo_response_for_case(case)
+            model_used = "demo-fallback"
+        else:
+            raise HTTPException(status_code=500, detail=f"Agent error: {exc}") from exc
 
     # Create proposal row
     proposal = Proposal(
@@ -150,7 +169,7 @@ def run_agent_for_case(
         params_json=json.dumps(agent_output.params),
         customer_message=agent_output.customer_message,
         confidence=float(agent_output.confidence),
-        model=settings.llm_model,
+        model=model_used,
         status="pending",
     )
     db.add(proposal)
@@ -166,5 +185,6 @@ def run_agent_for_case(
         "customer_message": proposal.customer_message,
         "params": agent_output.params,
         "status": proposal.status,
+        "model": model_used,
     }
 

@@ -239,9 +239,16 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                 AI Diagnosis & Suggested Action
               </h3>
               {proposal && (
-                <span className="text-[11px] text-gray-400 font-mono">
-                  Confidence: {Math.round(proposal.confidence * 100)}%
-                </span>
+                <div className="flex items-center gap-2">
+                  {proposal.model && (
+                    <span className="text-[10px] text-gray-500 font-mono bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded">
+                      {proposal.model}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    Confidence: {Math.round(proposal.confidence * 100)}%
+                  </span>
+                </div>
               )}
             </div>
 
