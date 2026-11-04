@@ -20,6 +20,7 @@ def _require_admin(x_admin_token: str = Header(default="", alias="x-admin-token"
         raise HTTPException(status_code=403, detail="Invalid admin token")
 
 
+@router.post("/run")
 @router.post("/backfill")
 def trigger_backfill(
     days: int = 90,
