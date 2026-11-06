@@ -38,6 +38,23 @@ def _require_demo_mode() -> None:
         raise HTTPException(status_code=403, detail="Demo mode is disabled")
 
 
+@router.get("/state")
+def get_demo_state(db: Session = Depends(get_db)) -> dict:
+    """Return current demo environment state and database entity counts."""
+    sub_count = db.query(Subscriber).count()
+    subscription_count = db.query(Subscription).count()
+    case_count = db.query(Case).count()
+    action_count = db.query(ActionLog).count()
+
+    return {
+        "is_demo_mode": settings.demo_mode,
+        "subscriber_count": sub_count,
+        "subscription_count": subscription_count,
+        "case_count": case_count,
+        "action_count": action_count,
+    }
+
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 

@@ -168,6 +168,12 @@
       - Updated `/healthz` reachability check and frontend settings labels to Gemini.
       - Verified: 60/60 tests pass; production frontend compiles with 0 errors.
 
+17. **Render Deployment Demo Mode Resolution:**
+    - Diagnosed why `https://salvage-ai.onrender.com` showed Demo Mode disconnected / inactive:
+      1. `backend/app/config.py` had default `demo_mode: bool = False`. In Render's container, `.env` is ignored by git, so without setting `DEMO_MODE=true` in Render's web dashboard, it booted with demo mode off. Changed default to `demo_mode: bool = True`.
+      2. The frontend called `GET /api/demo/state` to fetch entity counts, but the route was missing from `backend/app/api/demo.py`, causing a 404 error. Added `GET /api/demo/state` returning `is_demo_mode`, `subscriber_count`, `subscription_count`, `case_count`, and `action_count`.
+    - Pushed commit to `origin/main` to trigger Render auto-deploy.
+
 ---
 
 ## 5. Implementation Status & Checklist

@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./salvage.db"
 
     # App modes
-    demo_mode: bool = False
+    demo_mode: bool = True
     executor_enabled: bool = True
     allow_live: bool = False
 
