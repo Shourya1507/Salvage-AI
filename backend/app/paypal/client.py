@@ -273,9 +273,24 @@ def verify_webhook_signature(
 
 def check_auth_reachability() -> bool:
     """Return True if we can obtain a PayPal access token."""
+    # Fast path: in demo mode or with placeholder credentials, avoid blocking /healthz
+    if not settings.paypal_client_id or settings.paypal_client_id in (
+        "sandbox_client_id_demo",
+        "dummy_client_id",
+        "your_paypal_client_id",
+    ):
+        return False
     try:
-        _get_access_token()
-        return True
+        with httpx.Client(timeout=3) as client:
+            resp = client.post(
+                f"{settings.paypal_base_url}/v1/oauth2/token",
+                headers={
+                    "Authorization": _basic_auth(),
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                data={"grant_type": "client_credentials"},
+            )
+            return resp.status_code == 200
     except Exception:
         return False
 

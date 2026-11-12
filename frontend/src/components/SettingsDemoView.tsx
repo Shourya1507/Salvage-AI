@@ -192,9 +192,21 @@ export const SettingsDemoView: React.FC<SettingsDemoViewProps> = ({
               <Database className="w-4 h-4 text-gray-400" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  !health
+                    ? 'bg-amber-400 animate-pulse'
+                    : health.db === 'ok'
+                    ? 'bg-emerald-500'
+                    : 'bg-red-500'
+                }`}
+              ></span>
               <span className="font-semibold text-sm text-gray-800">
-                {health?.db === 'ok' ? 'Connected (SQLite WAL)' : 'Disconnected'}
+                {!health
+                  ? 'Connecting...'
+                  : health.db === 'ok'
+                  ? 'Connected (SQLite WAL)'
+                  : 'Disconnected'}
               </span>
             </div>
           </div>
@@ -205,9 +217,23 @@ export const SettingsDemoView: React.FC<SettingsDemoViewProps> = ({
               <ShieldCheck className="w-4 h-4 text-gray-400" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  !health
+                    ? 'bg-amber-400 animate-pulse'
+                    : health.paypal === 'ok'
+                    ? 'bg-emerald-500'
+                    : 'bg-blue-500'
+                }`}
+              ></span>
               <span className="font-semibold text-sm text-gray-800">
-                {health?.paypal_env === 'live' ? 'Live (Protected)' : 'Sandbox Mode'}
+                {!health
+                  ? 'Connecting...'
+                  : health.paypal === 'ok'
+                  ? health.paypal_env === 'live'
+                    ? 'Live (Protected)'
+                    : 'PayPal Sandbox (Active)'
+                  : 'Sandbox Mode (Simulated)'}
               </span>
             </div>
           </div>
@@ -218,9 +244,21 @@ export const SettingsDemoView: React.FC<SettingsDemoViewProps> = ({
               <Bot className="w-4 h-4 text-gray-400" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  !health
+                    ? 'bg-amber-400 animate-pulse'
+                    : health.llm === 'ok'
+                    ? 'bg-emerald-500'
+                    : 'bg-purple-500'
+                }`}
+              ></span>
               <span className="font-semibold text-sm text-gray-800">
-                Google Gemini 2.5 Flash (Read-Only)
+                {!health
+                  ? 'Connecting...'
+                  : health.llm === 'ok'
+                  ? 'Google Gemini 2.5 Flash (Active)'
+                  : 'Contextual AI Simulator (Demo)'}
               </span>
             </div>
           </div>

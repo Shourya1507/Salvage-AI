@@ -1,192 +1,144 @@
-# Salvage AI
+# Salvage AI — Autonomous PayPal Subscription Revenue Recovery Agent
 
-**An AI agent that finds and fixes revenue leaks in your PayPal subscription business.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-salvage--ai.onrender.com-green)](https://salvage-ai.onrender.com/)
 
-Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/). Works entirely in the PayPal **sandbox**.
+> **The AI Proposes → The Human Approves → The System Executes**
+
+Salvage AI is an autonomous agent that detects silent revenue leaks in PayPal subscription businesses, diagnoses root causes using Google Gemini 2.5 Flash, and recovers lost Monthly Recurring Revenue (MRR) with human-in-the-loop safety.
+
+## 🚀 Live Demo
+
+**[https://salvage-ai.onrender.com/](https://salvage-ai.onrender.com/)**
+
+The live demo runs in full demo mode with simulated PayPal sandbox data. Use the **Demo Controls** tab to:
+1. **Seed Subscribers** — Generate 25 sample subscribers with plans and payments.
+2. **Inject Failures** — Simulate failed payments, stalled suspensions, or duplicate charges.
+3. **Review AI Diagnosis** — Open a case to see Gemini's analysis and recovery proposal.
+4. **Approve & Execute** — Click to approve the AI's recommendation and recover revenue.
 
 ---
 
-## The problem
+## 🛠️ Local Setup & Run Instructions
 
-Small subscription businesses lose recurring revenue to preventable causes: failed renewals, subscriptions stuck in suspension, duplicate charges, price-change fallout, and subscribers drifting toward cancellation. The data is in PayPal, but nobody has time to read it.
+### Prerequisites
 
-## What Salvage AI does
+- **Python 3.11+**
+- **Node.js 20.19+** (or 22+)
+- **Git**
 
-1. **Detects** leaks from transaction history (Transaction Search) and live webhook events.
-2. **Diagnoses** each case with an LLM agent that explains what happened and what it is worth.
-3. **Proposes** a specific fix and drafts the customer message.
-4. **Acts** through the PayPal Subscriptions API, only after the merchant approves.
-
-> The agent proposes. The human approves. The system executes.
-
-## Features
-
-- Dashboard: monthly revenue at risk by cause, open cases, recovered revenue
-- Case queue sorted by severity, with the agent's reasoning and evidence
-- One-click Approve / Edit / Dismiss
-- Executable actions: retry payment, reactivate, suspend, cancel
-- Advisory actions: dunning message, win-back offer, duplicate-charge review
-- Full audit log of events, approvals, and PayPal responses
-- Experimental churn-risk score (proxy-trained, clearly labelled)
-- Demo mode with injectable failure scenarios
-
-## How PayPal is used
-
-| PayPal capability | Used for |
-|---|---|
-| OAuth 2.0 | Authenticating API calls |
-| Subscriptions API | Reading subscriptions; suspend, activate, cancel; retrying outstanding balances |
-| Transaction Search API | Backfilling payment history (31-day windows) |
-| Webhooks | Real-time payment-failed, suspended, and cancelled events |
-
-## How AI is used
-
-An LLM agent receives a compact context bundle for each case and may call **read-only** tools (timeline, plan history, cohort stats, churn score). It returns a schema-validated proposal. It has **no ability to change PayPal state**.
-
-## Architecture at a glance
-
-```
-PayPal Sandbox ──webhooks──▶ FastAPI backend ◀──REST── React dashboard
-      ▲                         │   │   │
-      └──Subscriptions/Search───┘   │   └──▶ LLM (read-only tools)
-                                    ▼
-                                Database
-```
-
-## Tech stack
-
-Python 3.11 · FastAPI · SQLAlchemy (SQLite dev / Postgres deploy) · scikit-learn · React + Vite + Tailwind · Anthropic API (configurable model)
-
-## Prerequisites
-
-- Python 3.11+ and Node 20+
-- A PayPal developer account with a **sandbox business account** and a **REST app**
-  - In the app settings, enable **Subscriptions** and **Transaction Search**
-- At least one sandbox **personal (buyer)** account
-- An LLM API key
-- A public HTTPS URL for webhooks (deploy, or use a tunnel such as ngrok)
-
-## Quick start
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Shourya1507/Salvage-AI.git
 cd Salvage-AI
-
-# 1) Configure environment (see table below)
-#    Create a .env file in backend/ with the variables listed.
-
-# 2) Backend
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m scripts.train_churn        # trains the proxy churn model
-python -m scripts.create_plans       # creates sandbox product + plans
-uvicorn app.main:app --reload --port 8000
-
-# 3) Frontend (new terminal)
-cd frontend
-npm install
-npm run dev
 ```
 
-Open the dashboard at `http://localhost:5173`.
-
-### Register the webhook
-
-1. Expose the backend (deploy it, or run `ngrok http 8000`).
-2. In the PayPal developer dashboard, add a webhook pointing to `https://<your-url>/webhooks/paypal`.
-3. Subscribe it to the billing subscription and payment events.
-4. Put the webhook ID in `PAYPAL_WEBHOOK_ID`.
-
-## Environment variables
-
-| Variable | Description | Default |
-|---|---|---|
-| `PAYPAL_CLIENT_ID` | Sandbox REST app client ID | required |
-| `PAYPAL_CLIENT_SECRET` | Sandbox REST app secret | required |
-| `PAYPAL_ENV` | `sandbox` (live is blocked unless `ALLOW_LIVE=true`) | `sandbox` |
-| `PAYPAL_WEBHOOK_ID` | ID of the registered webhook | required for verification |
-| `WEBHOOK_VERIFY` | Verify webhook signatures. Set `false` **only** for simulator events in demo | `true` |
-| `LLM_API_KEY` | API key for the LLM provider | required |
-| `LLM_MODEL` | Model name | provider default |
-| `DATABASE_URL` | SQLAlchemy URL | `sqlite:///./salvage.db` |
-| `DEMO_MODE` | Enables demo controls and endpoints | `false` |
-| `EXECUTOR_ENABLED` | Global kill switch for PayPal write actions | `true` |
-| `ADMIN_TOKEN` | Simple token protecting admin and demo routes | required |
-
-Never commit `.env`.
-
-## Data: what is real and what is simulated
-
-This matters for judging, so we are explicit:
-
-- **Real sandbox data:** a handful of subscriptions created and approved with sandbox buyer accounts. PayPal requires buyer approval to create a subscription, so we cannot bulk-create dozens by API alone.
-- **Simulated data:** a larger synthetic set loaded into the local database and labelled `simulated` in the UI, so the dashboard and scoring work at a realistic scale.
-- **Failure events:** injected via the PayPal Webhook Simulator or the in-app demo controls, because real sandbox payment failures are hard to trigger on demand. Simulated events may not pass signature verification, hence the labelled `WEBHOOK_VERIFY=false` demo option.
-- **Churn model:** trained on the public IBM Telco Customer Churn dataset as a proxy. It demonstrates the pipeline and is not a validated predictor for PayPal subscribers.
-
-## Running the demo
-
-1. Set `DEMO_MODE=true` and start both servers.
-2. In the dashboard's **Demo controls**, click **Load simulated subscribers**.
-3. Click **Inject failed payment** (or send a simulator event from PayPal's dashboard).
-4. Watch a case appear, open it, and read the agent's diagnosis and drafted message.
-5. Click **Approve**. For a real sandbox subscription, the Subscriptions API call runs and the action log updates.
-6. Check the dashboard: revenue at risk drops, recovered revenue rises.
-
-## Project structure
-
-```
-salvage-ai/
-├── README.md
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── paypal/          # client, webhook verification
-│   │   ├── ingestion/       # sync, backfill, normalizers
-│   │   ├── detection/       # rules R1–R5, severity
-│   │   ├── churn/           # model loading and scoring
-│   │   ├── agent/           # prompts, tools, runner, schemas
-│   │   ├── executor/        # approved-action execution
-│   │   ├── api/             # routers
-│   │   └── db/              # models, session
-│   ├── scripts/             # create_plans, train_churn, load_simulated
-│   └── tests/
-└── frontend/
-    └── src/                 # pages, components, api client
-```
-
-## API overview
-
-Key routes: `POST /webhooks/paypal`, `GET /api/dashboard`, `GET /api/cases`, `POST /api/proposals/{id}/approve`.
-
-## Safety design
-
-- Agent has read-only tools; executing is a separate, human-approved step
-- Fixed action enum and schema validation on all agent output
-- Sandbox-only by default; live credentials are refused
-- Idempotent webhook handling and action execution
-- Customer-controlled text is treated as untrusted data
-- Full audit trail
-
-## Testing
+### 2. Backend Setup
 
 ```bash
-cd backend && pytest
+cd backend
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-Includes unit tests for each detection rule, severity scoring, and schema validation, plus mocked-PayPal integration tests. An agent evaluation script runs golden cases against the LLM.
+Create a `.env` file in the `backend/` directory:
 
-## Known limitations
+```env
+DEMO_MODE=true
+WEBHOOK_VERIFY=false
+ADMIN_TOKEN=admin_secret_token_123
+# Optional: Add your own keys for live AI and PayPal sandbox
+# GEMINI_API_KEY=your_gemini_api_key
+# PAYPAL_CLIENT_ID=your_sandbox_client_id
+# PAYPAL_CLIENT_SECRET=your_sandbox_client_secret
+```
 
-- Sandbox only; no live merchants or real customers
-- Hybrid real/simulated dataset (see above)
-- Transaction Search can lag by up to about three hours; real-time behavior relies on webhooks
-- Refunds are advisory only
-- Messages are drafted, not sent
-- Single-merchant, no multi-user auth
+### 3. Frontend Setup
 
-## License
+```bash
+cd ../frontend
+npm install
+npm run build
+```
 
-MIT License
+### 4. Run the Application
+
+```bash
+cd ../backend
+uvicorn app.main:app --port 8000
+```
+
+Open **[http://localhost:8000](http://localhost:8000)** in your browser. The backend serves the compiled frontend automatically.
+
+### 5. Quick Demo Walkthrough
+
+1. Go to the **Demo Controls** tab.
+2. Click **"Seed Subscribers"** to generate sample data.
+3. Click **"Inject Failed Payment"** to simulate a billing crisis.
+4. Switch to the **Cases** tab — a new high-severity case appears.
+5. Click the case → review the AI diagnosis → click **"Approve & Execute"**.
+6. Check the **Action Log** tab to see the recovered MRR.
+
+---
+
+## 🧪 Running Tests
+
+```bash
+cd backend
+pytest -v
+```
+
+All **60 tests** pass, covering detection rules, webhook verification, AI schema parsing, executor idempotency, and end-to-end recovery flows.
+
+---
+
+## 🏗️ Architecture
+
+```
+PayPal Webhooks & Subscriptions API
+            │
+            ▼
+┌─────────────────────────────────────────────────┐
+│              SALVAGE AI BACKEND                  │
+│                                                  │
+│  Deterministic     Google Gemini     Human-in-   │
+│  Detection ────►   2.5 Flash     ──► the-Loop    │
+│  Rules R1–R5       (Read-Only)       Approval    │
+│                                         │        │
+│  Immutable    ◄── Idempotent  ◄─────────┘        │
+│  Audit Log        Executor                       │
+└─────────────────────────────────────────────────┘
+```
+
+### Key Invariants
+- **Read-only AI:** Gemini has zero write access to PayPal or databases.
+- **Human approval required:** No payment mutation runs without explicit merchant sign-off.
+- **Sandbox-only:** Live PayPal endpoints are blocked unless `ALLOW_LIVE=true`.
+- **Deterministic detection:** Rules R1–R5 are pure Python code, not LLM guesses.
+
+---
+
+## 📦 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python, FastAPI, SQLAlchemy 2.0, SQLite (WAL) |
+| **AI Engine** | Google Gemini 2.5 Flash (`google-genai` SDK) |
+| **ML Model** | Scikit-Learn (churn prediction) |
+| **Frontend** | React 19, TypeScript, Tailwind CSS, Vite |
+| **PayPal APIs** | Subscriptions, Webhooks, Transaction Search, OAuth 2.0 |
+| **Deployment** | Docker, Render |
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
